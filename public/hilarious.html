@@ -239,6 +239,116 @@
             padding: 20px;
             color: #999;
         }
+        /* ========== 手機版優化 ========== */
+@media (max-width: 768px) {
+  /* 角色頭像加大觸控區域 */
+  .role-item {
+    padding: 12px 8px;
+  }
+  .role-avatar {
+    width: 70px;
+    height: 70px;
+  }
+  .role-name {
+    font-size: 12px;
+  }
+  
+  /* 使用說明區 */
+  .instruction {
+    font-size: 12px;
+    padding: 12px;
+    margin: 8px;
+  }
+  
+  /* 介紹面板 */
+  .intro-panel {
+    margin: 8px;
+    padding: 16px;
+  }
+  .intro-avatar {
+    width: 70px;
+    height: 70px;
+  }
+  .intro-name {
+    font-size: 18px;
+  }
+  .intro-desc {
+    font-size: 13px;
+  }
+  .intro-btn {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+  
+  /* 聊天室頭部 */
+  .chat-header {
+    padding: 12px 16px;
+  }
+  .back-btn, .switch-role {
+    font-size: 28px;
+    padding: 12px;
+  }
+  .chat-avatar {
+    width: 44px;
+    height: 44px;
+  }
+  .chat-role-name {
+    font-size: 16px;
+  }
+  
+  /* 訊息區 */
+  .messages-area {
+    padding: 12px;
+    gap: 12px;
+    padding-bottom: 80px;  /* 留空間給輸入區 */
+  }
+  .message {
+    max-width: 85%;
+  }
+  .message-avatar {
+    width: 36px;
+    height: 36px;
+  }
+  .message-bubble {
+    font-size: 15px;
+    padding: 10px 14px;
+  }
+  
+  /* 輸入區 - 固定在底部 */
+  .input-area {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding: 12px 16px;
+    gap: 8px;
+    border-top: 1px solid #e0e0e0;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+  }
+  .input-area input {
+    padding: 12px 14px;
+    font-size: 16px;  /* 避免 iOS 縮放 */
+  }
+  .input-area button {
+    padding: 12px 18px;
+    font-size: 14px;
+  }
+  
+  /* 隱藏大廳的聊天容器，避免閃爍 */
+  .chat-container.active {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    background: #f5f5f5;
+  }
+}
+     /* 安全區域適配（iPhone X 以上） */
+.env-safe-area {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}   
     </style>
 </head>
 <body>
