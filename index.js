@@ -216,6 +216,7 @@ app.post('/api/chat/upload', upload.single('image'), async (req, res) => {
 });
 
 // ========== 取得角色列表（可從 Google Sheets 讀取，先寫死） ==========
+
 // ========== 取得角色列表（從 Google Sheets 讀取） ==========
 app.get('/api/roles', async (req, res) => {
   if (!googleSheetReady) {
