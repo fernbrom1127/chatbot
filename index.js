@@ -216,56 +216,56 @@ app.post('/api/chat/upload', upload.single('image'), async (req, res) => {
 });
 
 // ========== 取得角色列表（可從 Google Sheets 讀取，先寫死） ==========
-// ========== 取得角色列表（強化版） ==========
+// ========== 取得角色列表（從 Google Sheets 讀取） ==========
 app.get('/api/roles', async (req, res) => {
   if (!googleSheetReady) {
-    return res.status(503).json({ error: '服務未就緒' });
+    console.log('⚠️ Google Sheets 未就緒，回傳空角色列表');
+    return res.json([]);
   }
   
   try {
-    let roleSheet = googleSheetDoc.sheetsByTitle['角色設定'];
+    const roleSheet = googleSheetDoc.sheetsByTitle['角色設定'];
     if (!roleSheet) {
+      console.log('⚠️ 找不到「角色設定」工作表');
       return res.json([]);
     }
     
     const rows = await roleSheet.getRows();
     const roles = [];
     for (const row of rows) {
-      // 組合完整的 system prompt
-      let systemPrompt = row.get('角色提示詞') || '';
+      // ✅ 修正點：欄位名稱都加上引號，變成字串
+      const roleId = row.get('角色ID') || '';
+      const name = row.get('名稱') || '';
+      const avatar = row.get('頭像URL') || '';
+      const description = row.get('角色提示詞') || '';
+      const rules = row.get('語氣規則') || '';
+      const forbidden = row.get('禁止事項') || '';
+      const opening = row.get('固定開場') || '';
       
-      // 加上語氣規則
-      const語氣規則 = row.get('語氣規則');
-      if (語氣規則) {
-        systemPrompt += `\n\n【說話規則】${語氣規則}`;
+      // 組裝完整的 system prompt
+      let fullDescription = description;
+      if (rules) fullDescription += `\n\n【說話規則】${rules}`;
+      if (forbidden) fullDescription += `\n\n【禁止事項】${forbidden}`;
+      if (opening) fullDescription += `\n\n【開場白】${opening}`;
+      
+      if (roleId && name) {
+        roles.push({
+          id: roleId,
+          name: name,
+          avatar: avatar,
+          description: fullDescription
+        });
       }
-      
-      // 加上禁止事項
-      const禁止事項 = row.get('禁止事項');
-      if (禁止事項) {
-        systemPrompt += `\n\n【禁止事項】${禁止事項}`;
-      }
-      
-      // 加上固定開場
-      const固定開場 = row.get('固定開場');
-      if (固定開場) {
-        systemPrompt += `\n\n【開場白】每次對話開頭可以用「${固定開場}」，但不必每次都一樣。`;
-      }
-      
-      roles.push({
-        id: row.get('角色ID'),
-        name: row.get('名稱'),
-        avatar: row.get('頭像URL'),
-        description: systemPrompt  // 直接給完整的 system prompt
-      });
     }
+    
+    console.log(`✅ 成功讀取 ${roles.length} 個角色`);
     res.json(roles);
+    
   } catch (error) {
-    console.error('讀取角色失敗:', error);
-    res.status(500).json({ error: error.message });
+    console.error('❌ 讀取角色失敗:', error.message);
+    res.json([]);
   }
 });
-
 // ========== 靜態頁面 ==========
 app.get('/hilarious', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'hilarious.html'));
