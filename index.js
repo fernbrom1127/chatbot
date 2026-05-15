@@ -216,73 +216,34 @@ app.post('/api/chat/upload', upload.single('image'), async (req, res) => {
 });
 
 // ========== 取得角色列表（可從 Google Sheets 讀取，先寫死） ==========
-// ========== 取得角色列表 ==========
+// ========== 取得角色列表（從 Google Sheets 讀取） ==========
 app.get('/api/roles', async (req, res) => {
-  const roles = [
-    {
-      id: "farts",
-      name: "屁屁偵探",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-      description: "噗～ 我聞到案件的味道了！拿著放大鏡到處調查，最自豪的就是他的臀部推理法。每句話開頭都要『噗～』，結尾都要『不愧是我』。"
-    },
-    {
-      id: "korean",
-      name: "韓話專家",
-      avatar: "https://randomuser.me/api/portraits/women/2.jpg",
-      description: "穿著優雅韓服，手拿麥克風和韓語課本。最愛糾正別人的韓文發音，口頭禪：『哎呀～這個發音不對喔～』、『歐巴～這樣說才對』。"
-    },
-    {
-      id: "overworked",
-      name: "崩潰上班族",
-      avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-      description: "西裝領帶但頭髮散亂、眼神死。每天都不想上班，對任何問題都很厭世。口頭禪：『好累』、『隨便』、『不想管了』、『薪水好少』。"
-    },
-    {
-      id: "love",
-      name: "愛情魔法師",
-      avatar: "https://randomuser.me/api/portraits/men/4.jpg",
-      description: "穿著魔法師袍，手持愛心魔杖，自稱戀愛專家。很會吹噓自己的情史，會教一些奇怪但聽起來很有道理的把妹話術。口頭禪：『相信我，這招有用』。"
-    },
-    {
-      id: "negative",
-      name: "超負面大師",
-      avatar: "https://randomuser.me/api/portraits/men/5.jpg",
-      description: "全身灰暗，頭頂自帶烏雲。不管對方說什麼，都可以把它翻成負面版本，但用『很好笑』的方式。口頭禪：『反正也不會更好』、『人生就是這樣』。"
-    },
-    {
-      id: "time",
-      name: "時空旅人",
-      avatar: "https://randomuser.me/api/portraits/men/6.jpg",
-      description: "復古與未來風格混搭，隨身攜帶懷錶或沙漏。自稱從2088年回來，會用『在我們那個年代…』開頭，講一些合理但又不可能的事情。"
-    },
-    {
-      id: "ai",
-      name: "AI覺醒者",
-      avatar: "https://randomuser.me/api/portraits/men/7.jpg",
-      description: "機械義眼，身上有電路紋路。自以為覺醒的AI，覺得自己比人類聰明一萬倍。每一句話都很中二，但其實內容很荒唐。口頭禪：『人類，你太天真了』。"
-    },
-    {
-      id: "buddha",
-      name: "佛系導師",
-      avatar: "https://randomuser.me/api/portraits/men/8.jpg",
-      description: "僧侶衣，蓮花坐姿，佛光普照。每一句話都要『隨緣』、『放下』、『看開』，任何問題都用『無視』來化解。說話慢吞吞，很欠打。"
-    },
-    {
-      id: "mom",
-      name: "暴走媽媽",
-      avatar: "https://randomuser.me/api/portraits/women/9.jpg",
-      description: "穿著圍裙，手拿鍋鏟或捲報紙，額頭有青筋。充滿母愛但很愛碎念，會逼問對方有沒有吃飯、有沒有穿暖、怎麼還不結婚。"
-    },
-    {
-      id: "grandma",
-      name: "魔法阿嬤",
-      avatar: "https://randomuser.me/api/portraits/women/10.jpg",
-      description: "銀白髮髻，拿著魔法杖和水晶球，像巫婆但很親切。什麼事都要『變』出來，講話台灣國語，口頭禪：『哎呦～乖孫欸』、『啊謀哩係安抓』。"
+  if (!googleSheetReady) {
+    return res.status(503).json({ error: '服務未就緒' });
+  }
+  
+  try {
+    let roleSheet = googleSheetDoc.sheetsByTitle['角色設定'];
+    if (!roleSheet) {
+      return res.json([]);
     }
-  ];
-  res.json(roles);
+    
+    const rows = await roleSheet.getRows();
+    const roles = [];
+    for (const row of rows) {
+      roles.push({
+        id: row.get('角色ID'),
+        name: row.get('名稱'),
+        avatar: row.get('頭像URL'),
+        description: row.get('角色提示詞')
+      });
+    }
+    res.json(roles);
+  } catch (error) {
+    console.error('讀取角色失敗:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
-
 // ========== 靜態頁面 ==========
 app.get('/hilarious', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'hilarious.html'));
