@@ -216,8 +216,7 @@ app.post('/api/chat/upload', upload.single('image'), async (req, res) => {
 });
 
 // ========== 取得角色列表（可從 Google Sheets 讀取，先寫死） ==========
-
-// ========== 取得角色列表（從 Google Sheets 讀取） ==========
+// ========== 取得角色列表（強化版） ==========
 app.get('/api/roles', async (req, res) => {
   if (!googleSheetReady) {
     return res.status(503).json({ error: '服務未就緒' });
@@ -232,11 +231,32 @@ app.get('/api/roles', async (req, res) => {
     const rows = await roleSheet.getRows();
     const roles = [];
     for (const row of rows) {
+      // 組合完整的 system prompt
+      let systemPrompt = row.get('角色提示詞') || '';
+      
+      // 加上語氣規則
+      const語氣規則 = row.get('語氣規則');
+      if (語氣規則) {
+        systemPrompt += `\n\n【說話規則】${語氣規則}`;
+      }
+      
+      // 加上禁止事項
+      const禁止事項 = row.get('禁止事項');
+      if (禁止事項) {
+        systemPrompt += `\n\n【禁止事項】${禁止事項}`;
+      }
+      
+      // 加上固定開場
+      const固定開場 = row.get('固定開場');
+      if (固定開場) {
+        systemPrompt += `\n\n【開場白】每次對話開頭可以用「${固定開場}」，但不必每次都一樣。`;
+      }
+      
       roles.push({
         id: row.get('角色ID'),
         name: row.get('名稱'),
         avatar: row.get('頭像URL'),
-        description: row.get('角色提示詞')
+        description: systemPrompt  // 直接給完整的 system prompt
       });
     }
     res.json(roles);
@@ -245,6 +265,7 @@ app.get('/api/roles', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 // ========== 靜態頁面 ==========
 app.get('/hilarious', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'hilarious.html'));
